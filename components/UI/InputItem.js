@@ -8,11 +8,19 @@ const InputItem = props => {
         <View style={styles.inputItm}>
             <BodyText style={styles.title}>{props.inputTitle}</BodyText>
             <View style={{...styles.textCont, ...props.style}}>
-                <TextInput multiline={props.multiline} onChangeText={props.onChangeText} value={props.value} style={styles.input}/>
+                <TextInput keyboardType={props.keyboardType}
+                           multiline={props.multiline}
+                           onChangeText={props.onChangeText}
+                           value={props.value}
+                           style={styles.input}
+                           autoCapitalize='sentences'
+                           autoCorrect
+                />
             </View>
+            {!props.isValid && <BodyText style={{color: 'red'}}>{props.validErrorTxt}</BodyText>}
         </View>
     )
-}
+};
 
 const styles = StyleSheet.create({
     inputItm: {
