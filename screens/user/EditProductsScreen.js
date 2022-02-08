@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useReducer} from 'react';
-import {View, ScrollView, Alert, Platform, StyleSheet} from 'react-native';
+import {View, ScrollView, Alert, KeyboardAvoidingView, Platform, StyleSheet} from 'react-native';
 import {HeaderButtons, Item} from "react-navigation-header-buttons";
 import {useSelector, useDispatch} from "react-redux";
 import HeaderButton from "../../components/UI/HeaderButton";
@@ -19,7 +19,7 @@ const formReducer = (state, action) => {
             [action.input]: action.isValid
         }
         let updatedFormIsValid = true;
-        for(const key in updatedValidities) {
+        for (const key in updatedValidities) {
             updatedFormIsValid = updatedFormIsValid && updatedValidities[key]
         }
         return {
@@ -35,7 +35,6 @@ const EditProductScreen = props => {
     const pid = props.navigation.getParam('pid');
     const editingProduct = useSelector(state => state.products.usersProducts.find(product => product.id === pid))
 
-    console.log(editingProduct)
 
     const dispatch = useDispatch();
 
@@ -81,51 +80,70 @@ const EditProductScreen = props => {
         props.navigation.setParams({submit: completeEditHandler})
     }, [completeEditHandler])
 
-    const textChangeHandler = (inputLabel, text) => {
-        let isValid = false;
-        if(text.trim().length > 0) {
-            isValid = true;
-        }
+    const inputChangeHandler = useCallback((inputLabel, inputValue, inputValidity) => {
         dispatchFormState({
             type: REDUCER_INPUT_UPDATE,
-            value: text,
-            isValid: isValid,
+            value: inputValue,
+            isValid: inputValidity,
             input: inputLabel
         })
-    }
+    }, [dispatchFormState])
 
     return (
-        <View style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={styles.formContainer}>
-                    <InputItem
-                        inputTitle='Заголовок'
-                        value={formState.inputValues.title}
-                        onChangeText={textChangeHandler.bind(this, 'title')}
-                        isValid={formState.formIsValid}
-                        validErrorTxt='Введите правильный заголовок'
-                    />
-                    <InputItem
-                        inputTitle='Картинка'
-                        value={formState.inputValues.imageURL}
-                        onChangeText={textChangeHandler.bind(this, 'imageURL')}
-                    />
-                    <InputItem
-                        keyboardType='numeric'
-                        inputTitle='Цена'
-                        value={formState.inputValues.price}
-                        onChangeText={textChangeHandler.bind(this, 'price')}
-                    />
-                    <InputItem
-                        multiline={true}
-                        style={{height: 200}}
-                        inputTitle='Описание'
-                        value={formState.inputValues.description}
-                        onChangeText={textChangeHandler.bind(this, 'description')}
-                    />
-                </View>
-            </ScrollView>
-        </View>
+        <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={10}>
+            <View style={styles.container}>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                    <View style={styles.formContainer}>
+                        <InputItem
+                            inputLabel='title'
+                            inputTitle='Заголовок'
+                            value={formState.inputValues.title}
+                            onInputChange={inputChangeHandler}
+                            isValid={formState.formIsValid}
+                            validErrorTxt='Введите правильный заголовок'
+                            initialValue={editingProduct ? editingProduct.title : ''}
+                            initialValid={!!editingProduct}
+                            required
+                        />
+                        <InputItem
+                            inputLabel='imageURL'
+                            inputTitle='Картинка'
+                            value={formState.inputValues.imageURL}
+                            onInputChange={inputChangeHandler}
+                            validErrorTxt='Введите ссылку на изображение'
+                            initialValue={editingProduct ? editingProduct.imageURL : ''}
+                            initialValid={!!editingProduct}
+                            required
+                        />
+                        <InputItem
+                            inputLabel='price'
+                            inputTitle='Цена'
+                            keyboardType='numeric'
+                            value={formState.inputValues.price}
+                            validErrorTxt='Укажите цену'
+                            onInputChange={inputChangeHandler}
+                            initialValue={editingProduct ? editingProduct.price : ''}
+                            initialValid={!!editingProduct}
+                            required
+                            min={0.1}
+                        />
+                        <InputItem
+                            inputLabel='description'
+                            multiline={true}
+                            style={{height: 200}}
+                            inputTitle='Описание'
+                            validErrorTxt='Опишите товар'
+                            value={formState.inputValues.description}
+                            onInputChange={inputChangeHandler}
+                            initialValue={editingProduct ? editingProduct.description : ''}
+                            initialValid={!!editingProduct}
+                            required
+                            minLength={5}
+                        />
+                    </View>
+                </ScrollView>
+            </View>
+        </KeyboardAvoidingView>
     )
 }
 
